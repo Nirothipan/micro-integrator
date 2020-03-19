@@ -18,10 +18,11 @@
 
 package org.wso2.micro.integrator.ntask.coordination.task;
 
-import org.wso2.micro.integrator.ntask.coordination.task.db.connector.CoordinatedTaskDBConnector;
+import org.wso2.micro.integrator.ntask.coordination.CoordinatedTaskException;
+import org.wso2.micro.integrator.ntask.coordination.task.db.connector.RDMBSConnector;
 
-import java.sql.SQLException;
 import java.util.List;
+import java.util.Map;
 import javax.sql.DataSource;
 
 /**
@@ -32,21 +33,21 @@ public class TaskDataBase {
     /**
      * Connector for the data base.
      */
-    private CoordinatedTaskDBConnector coordinatedTaskDBConnector;
+    private RDMBSConnector rdmbsConnector;
 
-    public TaskDataBase(DataSource dataSource) throws SQLException {
+    public TaskDataBase(DataSource dataSource) throws CoordinatedTaskException {
 
-        this.coordinatedTaskDBConnector = new CoordinatedTaskDBConnector(dataSource);
+        this.rdmbsConnector = new RDMBSConnector(dataSource);
     }
 
     /**
      * Removes the node id of the task update the task state.
      *
-     * @param coordinatedTasks - List of coordinated tasks which needs to be updated.
+     * @param tasks - List of tasks which needs to be updated.
      */
-    public void cleanInvalidNodesAndUpdateState(List<CoordinatedTask> coordinatedTasks) throws SQLException {
+    public void unAssignAndUpdateRunningTasksToNone(List<String> tasks) throws CoordinatedTaskException {
 
-        coordinatedTaskDBConnector.cleanInvalidNodesAndUpdateState(coordinatedTasks);
+        rdmbsConnector.unAssignAndUpdateRunningStateToNone(tasks);
     }
 
     /**
@@ -55,22 +56,21 @@ public class TaskDataBase {
      *
      * @param nodeId - Node Id.
      */
-    public void cleanTasksOfNode(String nodeId) throws SQLException {
+    public void unAssignAndUpdateRunningTasksToNone(String nodeId) throws CoordinatedTaskException {
 
-        coordinatedTaskDBConnector.cleanTasksOfNode(nodeId);
+        rdmbsConnector.unAssignAndUpdateRunningStateToNone(nodeId);
     }
 
     /**
-     * Retrieves the list of tasks of node specified in specified state.
+     * Retrieves the list of tasks.
      *
      * @param nodeID - Id of the node, for which the tasks need to be retrieved.
      * @param state  - State of the tasks which need to be retrieved.
      * @return - List of tasks.
      */
-    public List<String> retrieveTasksOfParticularNodeInSpecifiedState(String nodeID, CoordinatedTask.States state)
-            throws SQLException {
+    public List<String> retrieveTaskNames(String nodeID, CoordinatedTask.States state) throws CoordinatedTaskException {
 
-        return coordinatedTaskDBConnector.retrieveTasksOfParticularNodeInSpecifiedState(nodeID, state);
+        return rdmbsConnector.retrieveTaskNames(nodeID, state);
     }
 
     /**
@@ -78,59 +78,69 @@ public class TaskDataBase {
      *
      * @param nodeId - The node id.
      */
-    public void removeTasksOfNode(String nodeId) throws SQLException {
+    public void deleteTasks(String nodeId) throws CoordinatedTaskException {
 
-        coordinatedTaskDBConnector.removeTasksOfNode(nodeId);
+        rdmbsConnector.deleteTasks(nodeId);
     }
 
     /**
-     * Remove the task entry from the db.
+     * Remove the task entry.
      *
      * @param coordinatedTasks - List of tasks to be removed.
      */
-    public void removeTasksFromDB(List<String> coordinatedTasks) throws SQLException {
+    public void deleteTasks(List<String> coordinatedTasks) throws CoordinatedTaskException {
 
-        coordinatedTaskDBConnector.removeTasksFromDB(coordinatedTasks);
+        rdmbsConnector.deleteTasks(coordinatedTasks);
     }
 
     /**
-     * Retrieve all the tasks in the task db.
+     * Retrieve all the task names.
      *
      * @return - List of available tasks.
      */
-    public List<String> getAllTasksInDB() throws SQLException {
+    public List<String> getAllTaskNames() throws CoordinatedTaskException {
 
-        return coordinatedTaskDBConnector.getAllTasksInDB();
+        return rdmbsConnector.getAllTaskNames();
     }
 
     /**
-     * Retrieve all assigned and in completed tasks in the task db.
+     * Retrieve all assigned and in completed tasks.
      *
      * @return - List of available tasks.
      */
-    public List<CoordinatedTask> getAllAssignedInCompleteTasks() throws SQLException {
+    public List<CoordinatedTask> getAllAssignedIncompleteTasks() throws CoordinatedTaskException {
 
-        return coordinatedTaskDBConnector.getAllAssignedInCompleteTasks();
+        return rdmbsConnector.getAllAssignedIncompleteTasks();
     }
 
     /**
-     * Add the task to the task db.
+     * Add the task.
      *
-     * @param coordinatedTask - The coordinated task which needs to be added.
+     * @param task - The coordinated task which needs to be added.
      */
-    public void addTaskToDB(CoordinatedTask coordinatedTask) throws SQLException {
+    public void addTaskIfNotExist(String task) throws CoordinatedTaskException {
 
-        coordinatedTaskDBConnector.addTaskToDB(coordinatedTask);
+        rdmbsConnector.addTaskIfNotExist(task);
     }
 
     /**
-     * Updates the state and node id of the provided tasks in db.
+     * Add the tasks.
      *
-     * @param coordinatedTasks - List of tasks to be updated.
+     * @param task - The list of task  names which needs to be added.
      */
-    public void updateTaskDB(List<CoordinatedTask> coordinatedTasks) throws SQLException {
+    public void addTaskIfNotExist(List<String> task) throws CoordinatedTaskException {
 
-        coordinatedTaskDBConnector.updateTaskDB(coordinatedTasks);
+        rdmbsConnector.addTaskIfNotExist(task);
+    }
+
+    /**
+     * Updates the state and node id.
+     *
+     * @param tasks - List of tasks to be updated.
+     */
+    public void updateAssignmentAndRunningStateToNone(Map<String, String> tasks) throws CoordinatedTaskException {
+
+        rdmbsConnector.updateAssignmentAndRunningStateToNone(tasks);
     }
 
     /**
@@ -139,9 +149,9 @@ public class TaskDataBase {
      * @param taskName - Name of the task.
      * @param state    - State to be updated.
      */
-    public void updateTaskState(String taskName, CoordinatedTask.States state) throws SQLException {
+    public void updateTaskState(String taskName, CoordinatedTask.States state) throws CoordinatedTaskException {
 
-        coordinatedTaskDBConnector.updateTaskState(taskName, state);
+        rdmbsConnector.updateTaskState(taskName, state);
     }
 
     /**
@@ -149,9 +159,9 @@ public class TaskDataBase {
      *
      * @return - List of unassigned and in complete tasks.
      */
-    public List<CoordinatedTask> getAllUnAssignedNotCompletedTasks() throws SQLException {
+    public List<String> retrieveAllUnAssignedAndIncompleteTasks() throws CoordinatedTaskException {
 
-        return coordinatedTaskDBConnector.retrieveAllUnAssignedAndIncompleteTasks();
+        return rdmbsConnector.retrieveAllUnAssignedAndIncompleteTasks();
     }
 
 }

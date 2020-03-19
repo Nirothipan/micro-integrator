@@ -21,7 +21,7 @@ package org.wso2.micro.integrator.ntask.core.internal;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.micro.integrator.coordination.ClusterCoordinator;
-import org.wso2.micro.integrator.ntask.coordination.task.ClusterNodeDetails;
+import org.wso2.micro.integrator.ntask.coordination.task.ClusterCommunicator;
 import org.wso2.micro.integrator.ntask.coordination.task.TaskDataBase;
 import org.wso2.micro.integrator.ntask.coordination.task.db.cleaner.TaskDBCleaner;
 import org.wso2.micro.integrator.ntask.coordination.task.resolver.TaskLocationResolver;
@@ -60,14 +60,14 @@ public class CoordinatedTaskScheduleManager {
         TaskDBCleaner taskDBCleaner = new TaskDBCleaner(taskDataBase);
         // the frequency at which task resolving need to be done per cleaning.
         int resolvingFrequency = 5;
-        ClusterNodeDetails connector = new ClusterNodeDetails(clusterCoordinator);
+        ClusterCommunicator connector = new ClusterCommunicator(clusterCoordinator);
         CoordinatedTaskScheduler taskScheduler = new CoordinatedTaskScheduler(taskDataBase, resolver, connector,
                                                                               taskDBCleaner, resolvingFrequency);
         int initialDelay = 0; // can start immediately as the task service is already registered.
         //todo read from toml
         int period = 2;
         LOG.info("Triggering coordinated task scheduler with an initial delay of " + initialDelay + " second(s) and a "
-                         + "period of " + period + " second(s) upon " + msg);
+                         + "period of " + period + " second(s)" + msg + ".");
         taskSchedulerExecutor.scheduleWithFixedDelay(taskScheduler, initialDelay, period, TimeUnit.SECONDS);
         DataHolder.getInstance().setTaskScheduler(taskSchedulerExecutor);
     }

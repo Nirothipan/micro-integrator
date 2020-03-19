@@ -22,7 +22,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.micro.integrator.coordination.ClusterCoordinator;
 import org.wso2.micro.integrator.ntask.common.TaskException;
-import org.wso2.micro.integrator.ntask.coordination.task.ClusterNodeDetails;
+import org.wso2.micro.integrator.ntask.coordination.CoordinatedTaskException;
+import org.wso2.micro.integrator.ntask.coordination.task.ClusterCommunicator;
 import org.wso2.micro.integrator.ntask.coordination.task.CoordinatedTask;
 import org.wso2.micro.integrator.ntask.coordination.task.TaskDataBase;
 import org.wso2.micro.integrator.ntask.coordination.task.db.cleaner.TaskDBCleaner;
@@ -30,9 +31,10 @@ import org.wso2.micro.integrator.ntask.coordination.task.resolver.TaskLocationRe
 import org.wso2.micro.integrator.ntask.core.impl.standalone.ScheduledTaskManager;
 import org.wso2.micro.integrator.ntask.core.internal.DataHolder;
 
-import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Scheduler class, which runs periodically to retrieve all the scheduled tasks assigned to the node and schedule
@@ -49,18 +51,18 @@ public class CoordinatedTaskScheduler implements Runnable {
     private TaskDBCleaner taskDBCleaner;
     private int resolvingFrequency;
     private int resolveCount = 0;
-    private ClusterNodeDetails clusterNodeDetails;
+    private ClusterCommunicator clusterCommunicator;
 
     public CoordinatedTaskScheduler(TaskDataBase taskDataBase, TaskLocationResolver taskLocationResolver,
-                                    ClusterNodeDetails connector) {
+                                    ClusterCommunicator connector) {
         this(taskDataBase, taskLocationResolver, connector, null, 1);
     }
 
     public CoordinatedTaskScheduler(TaskDataBase taskDataBase, TaskLocationResolver taskLocationResolver,
-                                    ClusterNodeDetails connector, TaskDBCleaner cleaner, int frequency) {
+                                    ClusterCommunicator connector, TaskDBCleaner cleaner, int frequency) {
         this.taskDataBase = taskDataBase;
         this.taskLocationResolver = taskLocationResolver;
-        this.clusterNodeDetails = connector;
+        this.clusterCommunicator = connector;
         this.taskDBCleaner = cleaner;
         this.resolvingFrequency = frequency;
     }
@@ -92,23 +94,23 @@ public class CoordinatedTaskScheduler implements Runnable {
     /**
      * Schedules all tasks assigned to this node.
      *
-     * @throws SQLException - When something goes wrong while retrieving all the assigned tasks from data base.
+     * @throws CoordinatedTaskException - When something goes wrong while retrieving all the assigned tasks.
      */
-    private void scheduleAllTasksAssignedToThisNode() throws SQLException {
+    private void scheduleAllTasksAssignedToThisNode() throws CoordinatedTaskException {
 
         LOG.debug("Retrieving tasks assigned to this node and to be scheduled.");
-        List<String> tasksOfThisNode = taskDataBase.retrieveTasksOfParticularNodeInSpecifiedState(
-                clusterCoordinator.getThisNodeId(), CoordinatedTask.States.NONE);
+        List<String> tasksOfThisNode = taskDataBase.retrieveTaskNames(clusterCoordinator.getThisNodeId(),
+                                                                      CoordinatedTask.States.NONE);
         if (tasksOfThisNode.isEmpty()) {
             LOG.debug("No tasks assigned to this node to be scheduled.");
             return;
         }
         ScheduledTaskManager coordinatedTaskManager = (ScheduledTaskManager) dataHolder.getTaskManager();
         List<String> deployedCoordinatedTasks = coordinatedTaskManager.getAllCoordinatedTasksDeployed();
-        for (String taskName : tasksOfThisNode) {
+        tasksOfThisNode.forEach(taskName -> {
             if (deployedCoordinatedTasks.contains(taskName)) {
                 if (LOG.isDebugEnabled()) {
-                    LOG.debug("Submitting task retrieved from data base [" + taskName + "] to the task manager.");
+                    LOG.debug("Submitting retrieved task [" + taskName + "] to the task manager.");
                 }
                 try {
                     coordinatedTaskManager.scheduleCoordinatedTask(taskName);
@@ -116,36 +118,33 @@ public class CoordinatedTaskScheduler implements Runnable {
                     LOG.error("Exception occurred while scheduling coordinated task : " + taskName, e);
                 }
             } else {
-                LOG.info("The task [" + taskName + "] retrieved from data base is not a deployed coordinated task "
-                                 + "in this node or an invalid entry, hence ignoring it. It will be eventually cleaned.");
+                LOG.info("The task [" + taskName + "] retrieved is not a deployed coordinated task "
+                                 + "in this node or an invalid entry, hence ignoring it. It will be eventually "
+                                 + "cleaned or deployed.");
             }
-        }
+        });
     }
 
     /**
      * Resolves the un assigned tasks and update the task database.
      * Synchronized since this will be triggered in leader periodically and upon member addition.
      *
-     * @throws SQLException when something goes wrong connecting to the data base
+     * @throws CoordinatedTaskException when something goes wrong connecting to the data base
      */
-    public synchronized void resolveUnassignedNotCompletedTasksAndUpdateDB() throws SQLException {
+    public synchronized void resolveUnassignedNotCompletedTasksAndUpdateDB() throws CoordinatedTaskException {
 
-        List<CoordinatedTask> unAssignedTasks = taskDataBase.getAllUnAssignedNotCompletedTasks();
+        List<String> unAssignedTasks = taskDataBase.retrieveAllUnAssignedAndIncompleteTasks();
         if (unAssignedTasks.isEmpty()) {
             LOG.debug("No un assigned tasks found.");
             return;
         }
-        List<CoordinatedTask> taskToBeUpdated = new ArrayList<>();
-        for (CoordinatedTask task : unAssignedTasks) {
-            String taskNode = taskLocationResolver.getTaskNodeLocation(clusterNodeDetails, task.getTaskName());
-            if (taskNode != null) { // can't resolve all of the time
-                CoordinatedTask.States taskState = task.getTaskState();
-                if (CoordinatedTask.States.RUNNING.equals(taskState)) {
-                    taskState = CoordinatedTask.States.NONE;
-                }
-                taskToBeUpdated.add(new CoordinatedTask(task.getTaskName(), taskNode, taskState));
+        Map<String, String> tasksToBeUpdated = new HashMap<>();
+        unAssignedTasks.forEach(taskName -> {
+            String destinedNode = taskLocationResolver.getTaskNodeLocation(clusterCommunicator, taskName);
+            if (destinedNode != null) { // can't resolve all of the time
+                tasksToBeUpdated.put(taskName, destinedNode);
             }
-        }
-        taskDataBase.updateTaskDB(taskToBeUpdated);
+        });
+        taskDataBase.updateAssignmentAndRunningStateToNone(tasksToBeUpdated);
     }
 }

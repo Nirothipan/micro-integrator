@@ -24,6 +24,7 @@ import org.wso2.micro.integrator.coordination.ClusterCoordinator;
 import org.wso2.micro.integrator.coordination.MemberEventListener;
 import org.wso2.micro.integrator.coordination.node.NodeDetail;
 import org.wso2.micro.integrator.ntask.common.TaskException;
+import org.wso2.micro.integrator.ntask.coordination.CoordinatedTaskException;
 import org.wso2.micro.integrator.ntask.coordination.task.resolver.TaskLocationResolver;
 import org.wso2.micro.integrator.ntask.coordination.task.scehduler.CoordinatedTaskScheduler;
 import org.wso2.micro.integrator.ntask.core.TaskManager;
@@ -31,7 +32,6 @@ import org.wso2.micro.integrator.ntask.core.impl.standalone.ScheduledTaskManager
 import org.wso2.micro.integrator.ntask.core.internal.CoordinatedTaskScheduleManager;
 import org.wso2.micro.integrator.ntask.core.internal.DataHolder;
 
-import java.sql.SQLException;
 import java.util.List;
 import java.util.concurrent.ScheduledExecutorService;
 
@@ -61,12 +61,12 @@ public class TaskEventListener extends MemberEventListener {
         }
         if (clusterCoordinator.isLeader()) {
             LOG.debug("Current node is leader, hence resolving unassigned tasks upon member addition.");
-            ClusterNodeDetails clusterNodeDetails = new ClusterNodeDetails(clusterCoordinator);
+            ClusterCommunicator clusterCommunicator = new ClusterCommunicator(clusterCoordinator);
             CoordinatedTaskScheduler taskScheduler = new CoordinatedTaskScheduler(taskDataBase, locationResolver,
-                                                                                  clusterNodeDetails);
+                                                                                  clusterCommunicator);
             try {
                 taskScheduler.resolveUnassignedNotCompletedTasksAndUpdateDB();
-            } catch (SQLException e) {
+            } catch (CoordinatedTaskException e) {
                 LOG.error("Exception occurred while resolving un assigned tasks upon member addition " + nodeDetail
                         .getNodeId(), e);
             }
@@ -81,8 +81,8 @@ public class TaskEventListener extends MemberEventListener {
         }
         String nodeId = nodeDetail.getNodeId();
         try {
-            taskDataBase.cleanTasksOfNode(nodeId);
-        } catch (SQLException e) {
+            taskDataBase.unAssignAndUpdateRunningTasksToNone(nodeId);
+        } catch (CoordinatedTaskException e) {
             LOG.error("Error occurred while cleaning the tasks of node " + nodeId, e);
         }
     }
@@ -100,7 +100,7 @@ public class TaskEventListener extends MemberEventListener {
         LOG.debug("This node became unresponsive.");
         ScheduledExecutorService taskScheduler = dataHolder.getTaskScheduler();
         if (taskScheduler != null) {
-            LOG.info("Shutting down coordinated task scheduler since the node became unresponsive.");
+            LOG.info("Shutting down coordinated task scheduler scheduler since the node became unresponsive.");
             taskScheduler.shutdown();
         }
         TaskManager taskManager = dataHolder.getTaskManager();
@@ -110,25 +110,25 @@ public class TaskEventListener extends MemberEventListener {
         ScheduledTaskManager scheduledTaskManager = (ScheduledTaskManager) taskManager;
         List<String> tasks = scheduledTaskManager.getAllCoordinatedTasksDeployed();
         // stop all running coordinated tasks.
-        for (String task : tasks) {
+        tasks.forEach(task -> {
             try {
                 scheduledTaskManager.stopExecution(task);
                 LOG.info("Stopped execution of task " + task);
             } catch (TaskException e) {
                 LOG.error("Unable to pause the task " + task, e);
             }
-        }
+        });
     }
 
     @Override
     public void reJoined(String nodeId) {
 
         LOG.debug("This node re-joined the cluster successfully.");
-        // removing the node id so that it will be resolved and assigned again in case if member removal
-        // hasn't happened already or the task hasn't been captured by task cleaning event.
-        // this will ensure that the task duplication doesn't occur.
         try {
-            taskDataBase.cleanTasksOfNode(nodeId);
+            // removing the node id so that it will be resolved and assigned again in case if member removal
+            // hasn't happened already or the task hasn't been captured by task cleaning event.
+            // this will ensure that the task duplication doesn't occur.
+            taskDataBase.unAssignAndUpdateRunningTasksToNone(nodeId);
         } catch (Throwable e) { // catching throwable so that we don't miss starting the scheduler
             LOG.error("Error occurred while cleaning the tasks of node " + nodeId, e);
         }
@@ -136,7 +136,7 @@ public class TaskEventListener extends MemberEventListener {
         CoordinatedTaskScheduleManager scheduleManager = new CoordinatedTaskScheduleManager(taskDataBase,
                                                                                             clusterCoordinator,
                                                                                             locationResolver);
-        scheduleManager.startTaskScheduler("rejoining the cluster successfully.");
+        scheduleManager.startTaskScheduler(" upon rejoining the cluster");
     }
 
 }

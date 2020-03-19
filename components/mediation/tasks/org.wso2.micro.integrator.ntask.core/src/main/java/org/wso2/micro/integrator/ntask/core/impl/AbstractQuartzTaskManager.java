@@ -39,6 +39,7 @@ import org.quartz.impl.matchers.GroupMatcher;
 import org.quartz.spi.OperableTrigger;
 import org.wso2.micro.integrator.ntask.common.TaskConstants;
 import org.wso2.micro.integrator.ntask.common.TaskException;
+import org.wso2.micro.integrator.ntask.coordination.CoordinatedTaskException;
 import org.wso2.micro.integrator.ntask.coordination.task.CoordinatedTask;
 import org.wso2.micro.integrator.ntask.coordination.task.TaskDataBase;
 import org.wso2.micro.integrator.ntask.core.TaskInfo;
@@ -48,7 +49,6 @@ import org.wso2.micro.integrator.ntask.core.TaskUtils;
 import org.wso2.micro.integrator.ntask.core.internal.DataHolder;
 import org.wso2.micro.integrator.ntask.core.internal.TasksDSComponent;
 
-import java.sql.SQLException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -409,7 +409,7 @@ public abstract class AbstractQuartzTaskManager implements TaskManager {
                     if (isCoordinatedTask) {
                         taskDataBase.updateTaskState(taskName, CoordinatedTask.States.COMPLETED);
                     }
-                } catch (TaskException | SQLException e) {
+                } catch (TaskException | CoordinatedTaskException e) {
                     log.error("Error in Finishing Task [" + trigger.getJobKey().getName() + "]: " + e.getMessage(), e);
                 }
             }
