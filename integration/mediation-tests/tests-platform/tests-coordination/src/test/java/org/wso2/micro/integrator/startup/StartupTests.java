@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.micro.integrator;
+package org.wso2.micro.integrator.startup;
 
 import org.junit.Assert;
 import org.testng.annotations.AfterClass;
@@ -28,16 +28,16 @@ import org.wso2.esb.integration.common.extensions.carbonserver.MultipleServersMa
 import org.wso2.esb.integration.common.utils.CarbonLogReader;
 import org.wso2.esb.integration.common.utils.ESBIntegrationTest;
 
-import static org.wso2.micro.integrator.ClusterTestUtils.getNode;
+import static org.wso2.micro.integrator.TestUtils.LOG_READ_TIMEOUT;
+import static org.wso2.micro.integrator.TestUtils.getNode;
 
-public class ClusterStartupTestCase extends ESBIntegrationTest {
+public class StartupTests extends ESBIntegrationTest {
 
     private MultipleServersManager manager = new MultipleServersManager();
     private CarbonTestServerManager node1;
     private CarbonTestServerManager node2;
     private CarbonLogReader logReader1;
     private CarbonLogReader logReader2;
-    private static final int LOG_READ_TIMEOUT = 180;
 
     @BeforeClass
     public void initialize() throws Exception {
