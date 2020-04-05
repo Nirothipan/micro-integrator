@@ -29,7 +29,8 @@
 
     <test name="Server-Startup-verification" verbose="2">
         <classes>
-            <class name="org.wso2.micro.integrator.ClusterStartupTestCase"/>
+            <class name="org.wso2.micro.integrator.startup.StartupTests"/>
+            <class name="org.wso2.micro.integrator.tasks.TaskTests"/>
         </classes>
     </test>
 
