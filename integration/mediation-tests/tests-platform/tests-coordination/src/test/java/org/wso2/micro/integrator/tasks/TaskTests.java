@@ -131,7 +131,7 @@ public class TaskTests extends ESBIntegrationTest {
         }
     }
 
-    @Test(dependsOnMethods = { "testTaskNode" })
+    @Test(dependsOnMethods = { "testTaskExecution" })
     void testTaskExecutionCount() {
 
         if (taskScheduledInNode1) {
