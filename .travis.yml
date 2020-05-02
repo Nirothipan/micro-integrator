@@ -19,7 +19,7 @@ matrix:
         - openjdk8
       install: true
 
-      script: mvn clean install -DskipTests
+      script: mvn clean install -P smoke-tests
 
       cache:
         directories:
