@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2020, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+  ~
+  ~ WSO2 Inc. licenses this file to you under the Apache License,
+  ~ Version 2.0 (the "License"); you may not use this file except
+  ~ in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~ http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing,
+  ~ software distributed under the License is distributed on an
+  ~ "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+  ~ KIND, either express or implied. See the License for the
+  ~ specific language governing permissions and limitations
+  ~ under the License.
+  -->
+<endpoint xmlns="http://ws.apache.org/ns/synapse" name="Test_Failover_0">
+    <failover>
+        <endpoint name="primary_0">
+            <address uri="http://localhost:9001/services/SimpleStockQuoteService"
+                     trace="enable">
+                <suspendOnFailure>
+                    <errorCodes>101501,101509,101503,101507,101508</errorCodes>
+                    <initialDuration>1000</initialDuration>
+                    <progressionFactor>2.0</progressionFactor>
+                    <maximumDuration>6400</maximumDuration>
+                </suspendOnFailure>
+                <retryConfig>
+                    <disabledErrorCodes>101504, 101505, 101500</disabledErrorCodes>
+                </retryConfig>
+                <markForSuspension>
+                    <retriesBeforeSuspension>2</retriesBeforeSuspension>
+                    <retryDelay>2</retryDelay>
+                </markForSuspension>
+                <timeout>
+                    <duration>2000</duration>
+                    <responseAction>fault</responseAction>
+                </timeout>
+            </address>
+        </endpoint>
+        <endpoint name="secondary_0">
+            <address uri="http://localhost:9003/services/SimpleStockQuoteService"
+                     trace="enable">
+                <suspendOnFailure>
+                    <errorCodes>101501,101509,101503,101507,101508</errorCodes>
+                    <initialDuration>1000</initialDuration>
+                    <progressionFactor>2.0</progressionFactor>
+                    <maximumDuration>6400</maximumDuration>
+                </suspendOnFailure>
+                <retryConfig>
+                    <disabledErrorCodes>101504, 101505, 101500</disabledErrorCodes>
+                </retryConfig>
+                <markForSuspension>
+                    <retriesBeforeSuspension>2</retriesBeforeSuspension>
+                    <retryDelay>2</retryDelay>
+                </markForSuspension>
+                <timeout>
+                    <duration>2000</duration>
+                    <responseAction>fault</responseAction>
+                </timeout>
+            </address>
+        </endpoint>
+    </failover>
+    <property name="ENDPOINT" value="Test_Failover"/>
+</endpoint>
