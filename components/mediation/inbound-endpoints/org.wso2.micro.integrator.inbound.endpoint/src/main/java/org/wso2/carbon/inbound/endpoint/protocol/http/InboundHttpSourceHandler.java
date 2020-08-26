@@ -84,25 +84,27 @@ public class InboundHttpSourceHandler extends SourceHandler {
             Pattern dispatchPattern = null;
 
             // Need to initialize workerPool only once
-            lock.lock();
-            try {
-                if (workerPool == null) {
-                    WorkerPoolConfiguration workerPoolConfiguration = HTTPEndpointManager.getInstance()
-                            .getWorkerPoolConfiguration(SUPER_TENANT_DOMAIN_NAME, port);
-                    if (workerPoolConfiguration != null) {
-                        workerPool = sourceConfiguration.getWorkerPool(workerPoolConfiguration.getWorkerPoolCoreSize(),
-                                workerPoolConfiguration.getWorkerPoolSizeMax(),
-                                workerPoolConfiguration
-                                        .getWorkerPoolThreadKeepAliveSec(),
-                                workerPoolConfiguration.getWorkerPoolQueuLength(),
-                                workerPoolConfiguration.getThreadGroupID(),
-                                workerPoolConfiguration.getThreadID());
-                    } else {
-                        workerPool = sourceConfiguration.getWorkerPool();
+            if (workerPool == null) {
+                lock.lock();
+                try {
+                    if (workerPool == null) {
+                        WorkerPoolConfiguration workerPoolConfiguration = HTTPEndpointManager.getInstance()
+                                .getWorkerPoolConfiguration(SUPER_TENANT_DOMAIN_NAME, port);
+                        if (workerPoolConfiguration != null) {
+                            workerPool = sourceConfiguration.getWorkerPool(workerPoolConfiguration.getWorkerPoolCoreSize(),
+                                    workerPoolConfiguration.getWorkerPoolSizeMax(),
+                                    workerPoolConfiguration
+                                            .getWorkerPoolThreadKeepAliveSec(),
+                                    workerPoolConfiguration.getWorkerPoolQueuLength(),
+                                    workerPoolConfiguration.getThreadGroupID(),
+                                    workerPoolConfiguration.getThreadID());
+                        } else {
+                            workerPool = sourceConfiguration.getWorkerPool();
+                        }
                     }
+                } finally {
+                    lock.unlock();
                 }
-            } finally {
-                lock.unlock();
             }
 
             Object correlationId = conn.getContext().getAttribute(CorrelationConstants.CORRELATION_ID);
