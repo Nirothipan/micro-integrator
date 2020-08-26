@@ -394,6 +394,7 @@ parameter.from = "demo_user@wso2.com"
 
 [transport.jms]
 listener_enable = true
+sender_enable = true
 
 [[transport.jms.listener]]
 
@@ -436,9 +437,6 @@ parameter.max_jsm_connection = 10
 parameter.max_consumer_error_retrieve_before_delay = 20
 parameter.consume_error_delay = "100"                   # delay in milliseconds
 parameter.consume_error_progression = "2.0"
-
-[transport.jms]
-sender_enable = true
 
 [[transport.jms.sender]]
 
@@ -485,6 +483,7 @@ parameter.vender_class_loader = false       # only for IBM MQ
 
 [transport.blocking.jms]
 listener_enable = true
+sender_enable = true
 
 [[transport.blocking.jms.listener]]     # jms listener for blocking transport
 
@@ -528,8 +527,6 @@ parameter.max_consumer_error_retrieve_before_delay = 20
 parameter.consume_error_delay = "100"                   # delay in milliseconds
 parameter.consume_error_progression = "2.0"
 
-[transport.blocking.jms]
-sender_enable = true
 
 [[transport.blocking.jms.sender]]   # jms sender for blocking transport
 
@@ -589,6 +586,7 @@ MyTopic = "example.MyTopic"
 ###################################     Rabbit MQ configurations        ###################################
 [transport.rabbitmq]
 listener_enable = true
+sender_enable = true
 
 [[transport.rabbitmq.listener]]
 
@@ -627,9 +625,6 @@ parameter.truststore_location =""
 parameter.truststore_type = ""
 parameter.truststore_password = ""
 
-[transport.rabbitmq]
-sender_enable = true
-
 [[transport.rabbitmq.sender]]
 
 name = "AMQPConnectionFactory"
@@ -650,6 +645,69 @@ parameter.exchange_durable = ""
 parameter.queue_auto_declare = ""
 parameter.exchange_auto_declare = ""
 parameter.connection_pool_size = 10
+
+[transport.blocking.rabbitmq]     # RabbitMQ blocking transport
+sender_enable = false
+
+[[transport.blocking.rabbitmq.sender]]
+
+name = "AMQPConnectionFactory"
+parameter.hostname = "localhost"
+parameter.port = 5672
+parameter.username = "guest"
+parameter.password = "guest"
+parameter.exchange_name = "amq.direct"
+parameter.routing_key = "MyQueue"
+parameter.reply_to_name = ""
+parameter.queue_delivery_mode = 1 # 1/2
+parameter.exchange_type = ""
+parameter.queue_name = "MyQueue"
+parameter.queue_durable = false
+parameter.queue_exclusive = false
+parameter.queue_auto_delete = false
+parameter.exchange_durable = ""
+parameter.queue_auto_declare = ""
+parameter.exchange_auto_declare = ""
+parameter.connection_pool_size = 10
+
+[transport.blocking.rabbitmq]
+listener_enable = true
+
+[[transport.blocking.rabbitmq.listener]]
+
+name = "AMQPConnectionFactory"
+parameter.hostname = "localhost"
+parameter.port = 5672
+parameter.username = "guest"
+parameter.password = "guest"
+parameter.connection_factory = ""
+parameter.exchange_name = "amq.direct"
+parameter.queue_name = "MyQueue"
+parameter.queue_auto_ack = false
+parameter.consumer_tag = ""
+parameter.channel_consumer_qos = ""
+parameter.durable = ""
+parameter.queue_exclusive = ""
+parameter.queue_auto_delete = ""
+parameter.queue_routing_key = ""
+parameter.queue_auto_declare = ""
+parameter.exchange_auto_declare = ""
+parameter.exchange_type = ""
+parameter.exchange_durable = ""
+parameter.exchange_auto_delete = ""
+parameter.message_content_type = ""
+
+parameter.retry_interval = "10000"        #in case of network failure interval in milliseconds
+parameter.retry_count = 5               #in case of network failure
+parameter.connection_pool_size = 25
+
+parameter.ssl_enable = true
+parameter.ssl_version = "SSL"
+parameter.keystore_location =""
+parameter.keystore_type = ""
+parameter.keystore_password = ""
+parameter.truststore_location =""
+parameter.truststore_type = ""
 
 ################################### Websocket transport configuration ###################################
 [transport.ws]
