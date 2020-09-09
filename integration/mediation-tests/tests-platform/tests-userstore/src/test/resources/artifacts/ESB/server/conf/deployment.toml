@@ -6,7 +6,7 @@ hot_deployment = "true"
 type = "database"
 read_only = "false"
 
-[keystore.tls]
+[keystore.primary]
 file_name = "repository/resources/security/wso2carbon.jks"
 password = "wso2carbon"
 alias = "wso2carbon"
