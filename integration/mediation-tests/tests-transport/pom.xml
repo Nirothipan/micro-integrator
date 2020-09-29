@@ -120,6 +120,21 @@
                             <excludeTransitive>true</excludeTransitive>
                         </configuration>
                     </execution>
+                    <execution>
+                        <id>copy-hl7-dependencies</id>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>copy-dependencies</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${basedir}/src/test/resources/artifacts/ESB/server/dropins
+                            </outputDirectory>
+                            <includeTypes>jar</includeTypes>
+                            <includeArtifactIds>org.wso2.micro.integrator.business.messaging.hl7,openjpa-all
+                            </includeArtifactIds>
+                            <excludeTransitive>true</excludeTransitive>
+                        </configuration>
+                    </execution>
                 </executions>
             </plugin>
             <plugin>
@@ -227,6 +242,15 @@
     </build>
 
     <dependencies>
+        <dependency>
+            <groupId>org.wso2.orbit.org.apache.openjpa</groupId>
+            <artifactId>openjpa-all</artifactId>
+        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>org.wso2.ei</groupId>-->
+<!--            <artifactId>org.wso2.micro.integrator.business.messaging.hl7</artifactId>-->
+<!--            <version>${project.version}</version>-->
+<!--        </dependency>-->
         <dependency>
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>

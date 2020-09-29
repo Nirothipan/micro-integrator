@@ -42,6 +42,11 @@
     <dependencyManagement>
         <dependencies>
             <dependency>
+                <groupId>org.wso2.orbit.org.apache.openjpa</groupId>
+                <artifactId>openjpa-all</artifactId>
+                <version>${openjpa.version.wso2}</version>
+            </dependency>
+            <dependency>
                 <groupId>org.wso2.carbon.identity.framework</groupId>
                 <artifactId>org.wso2.carbon.security.mgt.stub</artifactId>
                 <version>${carbon.identity.framework.version}</version>
