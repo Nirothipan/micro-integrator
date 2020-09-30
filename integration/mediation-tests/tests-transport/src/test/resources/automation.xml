@@ -289,9 +289,7 @@
                     <parameter name="-DgracefulShutdown" value="false"></parameter>
                     <!--<parameter name="cmdArg" value="debug 5005" />-->
                 </class>
-                <!--<class>
-                    <name>org.wso2.carbon.integration.common.extensions.usermgt.UserPopulateExtension</name>
-                </class>-->
+
                 <class>
                     <name>org.wso2.esb.integration.common.extensions.axis2server.Axis2ServerExtension</name>
                 </class>

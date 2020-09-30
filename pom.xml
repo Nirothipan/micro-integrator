@@ -43,6 +43,11 @@
     <dependencyManagement>
         <dependencies>
             <dependency>
+                <groupId>org.wso2.ei</groupId>
+                <artifactId>org.wso2.micro.integrator.business.messaging.hl7</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>org.wso2.orbit.org.apache.openjpa</groupId>
                 <artifactId>openjpa-all</artifactId>
                 <version>${openjpa.version.wso2}</version>
