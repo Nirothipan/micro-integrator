@@ -152,20 +152,6 @@
                             </archiverConfig>
                         </configuration>
                     </execution>
-                    <execution>
-                        <id>make-hl7-zip</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>single</goal>
-                        </goals>
-                        <configuration>
-                            <finalName>micro-integrator-hl7.${project.version}</finalName>
-                            <descriptors>
-                                <descriptor>src/assembly/hl7-package.xml</descriptor>
-                            </descriptors>
-                            <appendAssemblyId>false</appendAssemblyId>
-                        </configuration>
-                    </execution>
                 </executions>
             </plugin>
             <plugin>
