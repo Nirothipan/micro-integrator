@@ -35,6 +35,14 @@
     <dependencies>
         <dependency>
             <groupId>org.wso2.ei</groupId>
+            <artifactId>org.wso2.micro.integrator.business.messaging.hl7</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.orbit.org.apache.openjpa</groupId>
+            <artifactId>openjpa-all</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.ei</groupId>
             <artifactId>org.wso2.micro.integrator.server</artifactId>
         </dependency>
         <dependency>
@@ -142,6 +150,20 @@
                                 <defaultFileMode>0644</defaultFileMode>
                                 <fileMode>0644</fileMode>
                             </archiverConfig>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>make-hl7-zip</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                        <configuration>
+                            <finalName>micro-integrator-hl7.${project.version}</finalName>
+                            <descriptors>
+                                <descriptor>src/assembly/hl7-package.xml</descriptor>
+                            </descriptors>
+                            <appendAssemblyId>false</appendAssemblyId>
                         </configuration>
                     </execution>
                 </executions>
