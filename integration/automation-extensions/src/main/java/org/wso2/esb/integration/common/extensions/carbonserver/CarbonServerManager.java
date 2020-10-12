@@ -62,6 +62,7 @@ public class CarbonServerManager {
     private String coverageDumpFilePath;
     private int portOffset = 0;
     private static final String SERVER_SHUTDOWN_MESSAGE = "Halting JVM";
+    private static final String EXECUTABLES = "executables";
     private static final long DEFAULT_START_STOP_WAIT_MS = 1000 * 60 * 5;
     private static final String CMD_ARG = "cmdArg";
     private static int defaultHttpsPort = Integer.parseInt(FrameworkConstants.SERVER_DEFAULT_HTTPS_PORT);
@@ -79,6 +80,9 @@ public class CarbonServerManager {
         if (process != null) { // An instance of the server is running
             log.warn("Tried to start a new server when there is one already running");
             return;
+        }
+        if (commandMap.containsKey(EXECUTABLES)) {
+            updateFilePermissions(commandMap);
         }
         portOffset = getPortOffsetFromCommandMap(commandMap);
 
@@ -419,6 +423,14 @@ public class CarbonServerManager {
         } else {
             return ArrayUtils.addAll(parameterArray, cmdParaArray);
         }
+    }
+
+    private void updateFilePermissions(Map<String, String> commandMap) {
+
+        String[] executableFiles = commandMap.get(EXECUTABLES).trim().split(",");
+        Arrays.stream(executableFiles).map(file -> file.replace('/', File.separatorChar)).map(
+                file -> carbonHome + File.separator + file.trim()).forEach(
+                fileName -> new File(fileName).setExecutable(true));
     }
 
     private int getPortOffsetFromCommandMap(Map<String, String> commandMap) {
